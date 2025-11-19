@@ -5,6 +5,18 @@ let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
 
+function getBooks() {
+  return new Promise((resolve, reject) => {
+    try {
+      const books = require('./booksdb.js'); // Load books
+      resolve(books);
+    } catch (error) {
+      reject('Error loading books: ' + error.message);
+    }
+  });
+}
+
+
 public_users.post("/register", (req,res) => {
     const username = req.body.username;
     const password = req.body.password;
@@ -24,9 +36,16 @@ public_users.post("/register", (req,res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
-    return res.status(200).json(JSON.stringify(books,null,4));
-});
+public_users.get('/', async  (req, res) => {
+try {
+    const books = await getBooks();
+    return res.status(200).json(books);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+
+})
+
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
